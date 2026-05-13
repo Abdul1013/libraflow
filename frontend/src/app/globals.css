@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LibraFlow AI — Yacht Club Design System
+   Tailwind v4 @theme: all tokens become bg-*, text-*, border-* utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Yacht Club Palette ───────────────────────────────────────────────── */
+  --color-bg:              #F2F0EF;   /* Off-white page body                  */
+  --color-primary:         #245F73;   /* Deep Teal — Issue Book, active nav    */
+  --color-primary-hover:   #1d4f60;   /* Teal hover state                     */
+  --color-primary-active:  #163c49;   /* Teal active/pressed                  */
+  --color-primary-subtle:  #e8f2f5;   /* Teal tint for badges/pills           */
+  --color-accent:          #733E24;   /* Wood Brown — Overdue / History        */
+  --color-accent-hover:    #5e3219;   /* Brown hover                          */
+  --color-accent-subtle:   #f5ece7;   /* Brown tint                           */
+  --color-secondary:       #BBBDBC;   /* Silver — borders, disabled           */
+  --color-secondary-hover: #a5a7a6;   /* Silver hover                         */
+
+  /* ── Semantic Aliases ────────────────────────────────────────────────── */
+  --color-background:      #F2F0EF;
+  --color-surface:         #ffffff;
+  --color-foreground:      #1A1A1A;
+  --color-muted:           #5A5A5A;
+  --color-border:          #D8D6D5;
+  --color-border-strong:   #BBBDBC;
+
+  /* Status colours */
+  --color-success:         #1a6b44;
+  --color-success-subtle:  #e6f4ed;
+  --color-warning:         #733E24;
+  --color-warning-subtle:  #f5ece7;
+  --color-error:           #b91c1c;
+  --color-error-subtle:    #fef2f2;
+
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", monospace;
+
+  /* ── Border Radius ───────────────────────────────────────────────────── */
+  --radius-sm:  0.375rem;   /* 6px  — inputs, small badges          */
+  --radius:     0.75rem;    /* 12px — cards, buttons (Apple default) */
+  --radius-lg:  1rem;       /* 16px — modals, large cards           */
+  --radius-xl:  1.5rem;     /* 24px — hero elements, chips          */
+  --radius-full: 9999px;    /* pill shapes                          */
+
+  /* ── Shadows ─────────────────────────────────────────────────────────── */
+  --shadow-xs:   0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm:   0 1px 3px 0 rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+  --shadow-md:   0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
+  --shadow-lg:   0 10px 15px -3px rgb(0 0 0 / 0.10), 0 4px 6px -4px rgb(0 0 0 / 0.10);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+
+  /* ── Animation ───────────────────────────────────────────────────────── */
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-spin-slow: spin 2s linear infinite;
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apple-style focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Prevent 300ms tap delay and callout menus on touch devices */
+a, button, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent user from accidentally selecting text on interactive elements */
+button, [role="button"], nav a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Utility: Shimmer Skeleton ────────────────────────────────────────────── */
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 25%,
+    var(--color-bg)     50%,
+    var(--color-border) 75%
+  );
+  background-size: 400px 100%;
+  animation: var(--animate-shimmer);
+}
