@@ -11,7 +11,7 @@ today, preventing repeat emails when the endpoint is triggered multiple times.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # ── Email rendering ───────────────────────────────────────────────────────────
 
 def _build_html(name: str, book_title: str, due_date: datetime) -> str:
-    days_overdue = (datetime.now(timezone.utc) - due_date.replace(tzinfo=timezone.utc)).days
+    days_overdue = (datetime.utcnow() - due_date).days
     days_overdue = max(days_overdue, 1)
     return f"""
 <!DOCTYPE html>
@@ -131,7 +131,7 @@ async def notify_overdue_users(db: AsyncSession) -> dict[str, int]:
         .where(Transaction.status == "OVERDUE")
     )).all()
 
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     sent = skipped = 0
 
     for tx, user, book in rows:

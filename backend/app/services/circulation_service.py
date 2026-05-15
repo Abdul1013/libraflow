@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 from sqlalchemy import select, and_
@@ -45,12 +45,15 @@ async def borrow_book(
             detail="You already have an active loan for this book",
         )
 
+    # Strip timezone from due_date — DB uses TIMESTAMP WITHOUT TIME ZONE
+    due_date = payload.due_date.replace(tzinfo=None) if payload.due_date.tzinfo else payload.due_date
+
     # Atomic: decrement available_copies and create transaction
     book.available_copies -= 1
     transaction = Transaction(
         user_id=user_id,
         book_id=payload.book_id,
-        due_date=payload.due_date,
+        due_date=due_date,
     )
     db.add(transaction)
     await db.commit()
@@ -85,7 +88,7 @@ async def return_book(
     if book:
         book.available_copies = min(book.available_copies + 1, book.total_copies)
 
-    transaction.returned_at = datetime.now(timezone.utc)
+    transaction.returned_at = datetime.utcnow()
     transaction.status = "RETURNED"
     await db.commit()
     await db.refresh(transaction)
@@ -114,7 +117,7 @@ async def get_all_transactions(
 
 async def mark_overdue(db: AsyncSession) -> int:
     """Update BORROWED transactions past due_date to OVERDUE. Returns count updated."""
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     result = await db.execute(
         select(Transaction).where(
             and_(Transaction.status == "BORROWED", Transaction.due_date < now)
