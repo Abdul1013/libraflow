@@ -9,13 +9,10 @@ from sqlmodel import SQLModel
 # Import all models so Alembic can detect them
 import app.models  # noqa: F401
 
-from app.core.config import settings
+from app.db.session import _db_url, _db_ssl
 
 config = context.config
-config.set_main_option(
-    "sqlalchemy.url",
-    settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+asyncpg://"),
-)
+config.set_main_option("sqlalchemy.url", _db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -46,6 +43,7 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"ssl": True} if _db_ssl else {},
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

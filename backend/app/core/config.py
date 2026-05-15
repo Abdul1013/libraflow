@@ -1,5 +1,7 @@
+import json
 from functools import lru_cache
 from typing import List
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +28,19 @@ class Settings(BaseSettings):
 
     RESEND_API_KEY: str = ""
     FROM_EMAIL: str = "noreply@libraflow.ai"
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors(cls, v: object) -> object:
+        if not isinstance(v, str):
+            return v
+        try:
+            parsed = json.loads(v)
+            if isinstance(parsed, list):
+                return parsed
+        except (json.JSONDecodeError, ValueError):
+            pass
+        return [origin.strip() for origin in v.split(",") if origin.strip()]
 
 
 @lru_cache
