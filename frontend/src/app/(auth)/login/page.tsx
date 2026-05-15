@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Library, Eye, EyeOff } from "lucide-react";
@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function LoginPage() {
+function LoginForm() {
   const router       = useRouter();
   const params       = useSearchParams();
   const redirect     = params.get("redirect") ?? "/search";
@@ -113,5 +113,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
