@@ -22,6 +22,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS must be outermost so all responses (including errors) carry the header
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -31,12 +32,17 @@ app.add_middleware(
 )
 
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "An unexpected error occurred. Please try again."},
-    )
+# Exception catcher runs INSIDE CORSMiddleware so error responses still get
+# Access-Control-Allow-Origin headers (ServerErrorMiddleware runs outside CORS).
+@app.middleware("http")
+async def catch_unhandled_exceptions(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "An unexpected error occurred. Please try again."},
+        )
 
 
 app.include_router(api_router, prefix="/api/v1")

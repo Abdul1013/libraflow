@@ -91,3 +91,24 @@ async def refresh_tokens(
 @router.get("/me", response_model=UserRead)
 async def me(current_user: CurrentUser) -> UserRead:
     return UserRead.model_validate(current_user)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> None:
+    from app.core.security import hash_password
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    current_user.hashed_password = hash_password(payload.new_password)
+    await db.commit()
