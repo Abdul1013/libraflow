@@ -40,8 +40,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: (creds: LoginPayload) =>
       api.post<LoginResponse>("/api/v1/auth/login", creds),
-    onSuccess: ({ user, access_token }) => {
-      setAuthToken(access_token);
+    onSuccess: ({ user }) => {
       qc.setQueryData(keys.currentUser(), user);
     },
   });

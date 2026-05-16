@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Library, Eye, EyeOff } from "lucide-react";
 import { useLogin } from "@/lib/hooks/use-auth";
 import { useAuthStore } from "@/stores/auth-store";
+import { setAuthToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -27,9 +28,10 @@ function LoginForm() {
 
     try {
       const res = await login.mutateAsync({ email, password });
+      setAuthToken(res.access_token);      // set token before navigating
       setUser(res.user);
       const role = res.user.role;
-      const dest = role === "ADMIN" || role === "LIBRARIAN" ? "/dashboard" : redirect;
+      const dest = role === "ADMIN" || role === "LIBRARIAN" ? "/dashboard" : "/search";
       router.push(dest);
     } catch (err) {
       setError((err as Error).message ?? "Login failed. Please try again.");
