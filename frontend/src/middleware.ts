@@ -9,16 +9,17 @@ export function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   if (!isProtected) return NextResponse.next();
 
-  const hasToken = request.cookies.has("access_token");
+  // lf_authed is a SameSite=Lax cookie set by the frontend JS on login —
+  // works cross-origin unlike the HTTP-only backend cookie.
+  const hasToken = request.cookies.has("lf_authed");
   if (!hasToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Block students from admin/librarian routes using the non-sensitive role cookie
   const isLibrarianRoute = LIBRARIAN_PREFIXES.some((p) => pathname.startsWith(p));
-  if (isLibrarianRoute && request.cookies.get("user_role")?.value === "STUDENT") {
+  if (isLibrarianRoute && request.cookies.get("lf_role")?.value === "STUDENT") {
     return NextResponse.redirect(new URL("/search", request.url));
   }
 

@@ -28,7 +28,7 @@ function LoginForm() {
 
     try {
       const res = await login.mutateAsync({ email, password });
-      setAuthToken(res.access_token);      // set token before navigating
+      setAuthToken(res.access_token, res.user.role);  // set token + role cookie before navigating
       setUser(res.user);
       const role = res.user.role;
       const dest = role === "ADMIN" || role === "LIBRARIAN" ? "/dashboard" : "/search";

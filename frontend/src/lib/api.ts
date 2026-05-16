@@ -3,17 +3,35 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 // ── Token store — sessionStorage so it survives page refresh but not new tabs ──
 
 const _TOKEN_KEY = "lf_tok";
+const _COOKIE_MAX_AGE = 7 * 24 * 3600; // 7 days, matches refresh token lifetime
 
 let _token: string | null = null;
 if (typeof window !== "undefined") {
   _token = sessionStorage.getItem(_TOKEN_KEY);
 }
 
-export function setAuthToken(token: string | null): void {
+function _setCookie(name: string, value: string, maxAge: number) {
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+function _clearCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0`;
+}
+
+// role is passed so middleware can enforce role-based route guards without
+// decoding the JWT (which isn't possible in Edge Runtime without extra deps).
+export function setAuthToken(token: string | null, role?: string): void {
   _token = token;
   if (typeof window === "undefined") return;
-  if (token) sessionStorage.setItem(_TOKEN_KEY, token);
-  else sessionStorage.removeItem(_TOKEN_KEY);
+  if (token) {
+    sessionStorage.setItem(_TOKEN_KEY, token);
+    _setCookie("lf_authed", "1", _COOKIE_MAX_AGE);
+    if (role) _setCookie("lf_role", role, _COOKIE_MAX_AGE);
+  } else {
+    sessionStorage.removeItem(_TOKEN_KEY);
+    _clearCookie("lf_authed");
+    _clearCookie("lf_role");
+  }
 }
 
 export function getAuthToken(): string | null {
