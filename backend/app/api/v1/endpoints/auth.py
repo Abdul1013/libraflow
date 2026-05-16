@@ -13,7 +13,7 @@ from app.services.user_service import create_user, get_user_by_email
 
 router = APIRouter()
 
-_COOKIE_OPTS = dict(httponly=True, secure=True, samesite="lax")
+_COOKIE_OPTS = dict(httponly=True, secure=True, samesite="none")
 _ACCESS_MAX_AGE  = 15 * 60           # 15 min
 _REFRESH_MAX_AGE = 7 * 24 * 3600     # 7 days
 
