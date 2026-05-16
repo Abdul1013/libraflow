@@ -48,7 +48,12 @@ async def login(payload: LoginRequest, response: Response, db: DBSession) -> dic
     response.set_cookie("access_token",  access_token,  max_age=_ACCESS_MAX_AGE,  **_COOKIE_OPTS)
     response.set_cookie("refresh_token", refresh_token, max_age=_REFRESH_MAX_AGE, **_COOKIE_OPTS)
 
-    return {"message": "Login successful", "user": UserRead.model_validate(user)}
+    return {
+        "message": "Login successful",
+        "user": UserRead.model_validate(user),
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+    }
 
 
 @router.post("/logout")

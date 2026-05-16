@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, keys } from "@/lib/api";
+import { api, keys, setAuthToken } from "@/lib/api";
 import type { User, LoginPayload, UserCreate } from "@/types";
 
 interface LoginResponse {
   message: string;
   user: User;
+  access_token: string;
+  refresh_token: string;
 }
 
 // ── Current session (reads JWT cookie server-side; returns null when logged out) ──
@@ -38,8 +40,8 @@ export function useLogin() {
   return useMutation({
     mutationFn: (creds: LoginPayload) =>
       api.post<LoginResponse>("/api/v1/auth/login", creds),
-    onSuccess: ({ user }) => {
-      // Seed the current-user cache so components reading useCurrentUser() don't refetch
+    onSuccess: ({ user, access_token }) => {
+      setAuthToken(access_token);
       qc.setQueryData(keys.currentUser(), user);
     },
   });
@@ -52,7 +54,8 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => api.post<void>("/api/v1/auth/logout", {}),
     onSuccess: () => {
-      qc.clear(); // wipe all cached data — user is logged out
+      setAuthToken(null);
+      qc.clear();
     },
   });
 }

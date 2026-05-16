@@ -1,15 +1,38 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+// ── Token store — sessionStorage so it survives page refresh but not new tabs ──
+
+const _TOKEN_KEY = "lf_tok";
+
+let _token: string | null = null;
+if (typeof window !== "undefined") {
+  _token = sessionStorage.getItem(_TOKEN_KEY);
+}
+
+export function setAuthToken(token: string | null): void {
+  _token = token;
+  if (typeof window === "undefined") return;
+  if (token) sessionStorage.setItem(_TOKEN_KEY, token);
+  else sessionStorage.removeItem(_TOKEN_KEY);
+}
+
+export function getAuthToken(): string | null {
+  return _token;
+}
+
 // ── Core fetch wrapper ─────────────────────────────────────────────────────
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  if (_token) headers["Authorization"] = `Bearer ${_token}`;
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    credentials: "include", // sends HTTP-only auth cookie (Sprint 2)
+    headers,
+    credentials: "include",
   });
 
   if (!res.ok) {

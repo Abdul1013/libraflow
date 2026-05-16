@@ -1,6 +1,6 @@
 from typing import Annotated
 from uuid import UUID
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,15 +37,21 @@ async def _get_user_from_token(
 
 
 async def get_current_user(
-    access_token: Annotated[str | None, Cookie()] = None,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> User:
-    if access_token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-        )
-    return await _get_user_from_token(access_token, session)
+    # Bearer token (cross-origin / Vercel → Render)
+    auth_header = request.headers.get("Authorization", "")
+    token: str | None = auth_header[7:] if auth_header.startswith("Bearer ") else None
+
+    # Cookie fallback (local dev)
+    if not token:
+        token = request.cookies.get("access_token")
+
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    return await _get_user_from_token(token, session)
 
 
 def require_roles(*roles: str):
