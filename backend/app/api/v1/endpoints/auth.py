@@ -47,6 +47,8 @@ async def login(payload: LoginRequest, response: Response, db: DBSession) -> dic
 
     response.set_cookie("access_token",  access_token,  max_age=_ACCESS_MAX_AGE,  **_COOKIE_OPTS)
     response.set_cookie("refresh_token", refresh_token, max_age=_REFRESH_MAX_AGE, **_COOKIE_OPTS)
+    # Non-HTTP-only: readable by Next.js middleware for role-based route guarding
+    response.set_cookie("user_role", user.role, max_age=_REFRESH_MAX_AGE, secure=True, samesite="none")
 
     return {
         "message": "Login successful",
@@ -60,6 +62,7 @@ async def login(payload: LoginRequest, response: Response, db: DBSession) -> dic
 async def logout(response: Response) -> dict:
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
+    response.delete_cookie("user_role")
     return {"message": "Logged out"}
 
 

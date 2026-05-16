@@ -28,7 +28,9 @@ function LoginForm() {
     try {
       const res = await login.mutateAsync({ email, password });
       setUser(res.user);
-      router.push(redirect);
+      const role = res.user.role;
+      const dest = role === "ADMIN" || role === "LIBRARIAN" ? "/dashboard" : redirect;
+      router.push(dest);
     } catch (err) {
       setError((err as Error).message ?? "Login failed. Please try again.");
     }

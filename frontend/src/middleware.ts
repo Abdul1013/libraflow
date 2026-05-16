@@ -1,10 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Routes that require authentication
 const PROTECTED_PREFIXES = ["/dashboard", "/catalogue", "/circulation", "/members", "/reports", "/settings", "/borrowings", "/recommendations"];
-
-// Routes that require librarian/admin role (cookie `role` claim checked server-side in Sprint 3)
-const LIBRARIAN_PREFIXES = ["/dashboard", "/catalogue", "/circulation", "/members", "/reports"];
+const LIBRARIAN_PREFIXES = ["/dashboard", "/catalogue", "/circulation", "/members", "/reports", "/settings"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,12 +9,17 @@ export function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   if (!isProtected) return NextResponse.next();
 
-  // The access_token is an HTTP-only cookie — we can check its presence (not decode it)
   const hasToken = request.cookies.has("access_token");
   if (!hasToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Block students from admin/librarian routes using the non-sensitive role cookie
+  const isLibrarianRoute = LIBRARIAN_PREFIXES.some((p) => pathname.startsWith(p));
+  if (isLibrarianRoute && request.cookies.get("user_role")?.value === "STUDENT") {
+    return NextResponse.redirect(new URL("/search", request.url));
   }
 
   return NextResponse.next();
