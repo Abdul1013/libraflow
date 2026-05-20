@@ -89,10 +89,15 @@ async function request<T>(path: string, init?: RequestInit, isRetry = false): Pr
   ) {
     const refreshed = await _tryRefresh();
     if (refreshed) return request<T>(path, init, true);
-    // Refresh failed — clear local auth state and force a re-login.
+    // Refresh failed — clear local auth state. Only hard-redirect if the user
+    // is on a page that requires authentication; on /login and /register a 401
+    // from SessionHydrator's /auth/me is expected and must not cause a reload loop.
     setAuthToken(null);
     if (typeof window !== "undefined") {
-      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      const p = window.location.pathname;
+      if (p !== "/login" && p !== "/register") {
+        window.location.href = `/login?redirect=${encodeURIComponent(p)}`;
+      }
     }
     throw new Error("Session expired. Please log in again.");
   }
