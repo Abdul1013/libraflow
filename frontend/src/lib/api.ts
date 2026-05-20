@@ -38,9 +38,35 @@ export function getAuthToken(): string | null {
   return _token;
 }
 
+// ── Token refresh ─────────────────────────────────────────────────────────
+
+// Coalesces concurrent 401s into a single refresh call.
+let _refreshPromise: Promise<boolean> | null = null;
+
+async function _tryRefresh(): Promise<boolean> {
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.access_token) setAuthToken(data.access_token);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      _refreshPromise = null;
+    }
+  })();
+  return _refreshPromise;
+}
+
 // ── Core fetch wrapper ─────────────────────────────────────────────────────
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, isRetry = false): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(init?.headers as Record<string, string> | undefined),
@@ -52,6 +78,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers,
     credentials: "include",
   });
+
+  // On 401, attempt one silent refresh then retry. Skip if this is already the
+  // retry, or if we're hitting the refresh/logout endpoints themselves.
+  if (
+    res.status === 401 &&
+    !isRetry &&
+    !path.includes("/auth/refresh") &&
+    !path.includes("/auth/logout")
+  ) {
+    const refreshed = await _tryRefresh();
+    if (refreshed) return request<T>(path, init, true);
+    // Refresh failed — clear local auth state and force a re-login.
+    setAuthToken(null);
+    if (typeof window !== "undefined") {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+    throw new Error("Session expired. Please log in again.");
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }));

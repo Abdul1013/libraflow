@@ -31,8 +31,8 @@ function LoginForm() {
       setAuthToken(res.access_token, res.user.role);  // set token + role cookie before navigating
       setUser(res.user);
       const role = res.user.role;
-      const dest = role === "ADMIN" || role === "LIBRARIAN" ? "/dashboard" : "/search";
-      router.push(dest);
+      const defaultDest = role === "ADMIN" || role === "LIBRARIAN" ? "/dashboard" : "/search";
+      router.push(params.get("redirect") ?? defaultDest);
     } catch (err) {
       setError((err as Error).message ?? "Login failed. Please try again.");
     }

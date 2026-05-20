@@ -60,9 +60,11 @@ async def login(payload: LoginRequest, response: Response, db: DBSession) -> dic
 
 @router.post("/logout")
 async def logout(response: Response) -> dict:
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    response.delete_cookie("user_role")
+    # Must match the attributes used when setting — samesite/secure are required for browsers
+    # to match and delete the cookie rather than ignoring the directive.
+    response.delete_cookie("access_token",  httponly=True, secure=True, samesite="none")
+    response.delete_cookie("refresh_token", httponly=True, secure=True, samesite="none")
+    response.delete_cookie("user_role",     secure=True,  samesite="none")
     return {"message": "Logged out"}
 
 
@@ -93,7 +95,7 @@ async def refresh_tokens(
 
     new_access = create_access_token(str(user.id), user.role)
     response.set_cookie("access_token", new_access, max_age=_ACCESS_MAX_AGE, **_COOKIE_OPTS)
-    return {"message": "Token refreshed"}
+    return {"message": "Token refreshed", "access_token": new_access}
 
 
 @router.get("/me", response_model=UserRead)
