@@ -64,6 +64,14 @@ async function _tryRefresh(): Promise<boolean> {
   return _refreshPromise;
 }
 
+// Auth endpoints that should never trigger a refresh:
+// - /auth/login    : 401 = wrong credentials, not an expired token
+// - /auth/register : same
+// - /auth/refresh  : the refresh call itself
+// - /auth/logout   : clearing the session intentionally
+// All other 401s (books, transactions, etc.) are treated as expired-token and refreshed.
+const _NO_REFRESH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/logout"];
+
 // ── Core fetch wrapper ─────────────────────────────────────────────────────
 
 async function request<T>(path: string, init?: RequestInit, isRetry = false): Promise<T> {
@@ -79,26 +87,20 @@ async function request<T>(path: string, init?: RequestInit, isRetry = false): Pr
     credentials: "include",
   });
 
-  // On 401, attempt one silent refresh then retry. Skip if this is already the
-  // retry, or if we're hitting the refresh/logout endpoints themselves.
+  // On 401 from a data endpoint (not an auth endpoint), attempt one silent
+  // token refresh then retry. Guards (AdminGuard, StudentGuard) observe the
+  // useCurrentUser query and handle the redirect to the correct login portal
+  // when a refresh ultimately fails — keeping api.ts free of routing logic.
   if (
     res.status === 401 &&
     !isRetry &&
-    !path.includes("/auth/refresh") &&
-    !path.includes("/auth/logout")
+    !_NO_REFRESH_PATHS.some((p) => path.includes(p))
   ) {
     const refreshed = await _tryRefresh();
     if (refreshed) return request<T>(path, init, true);
-    // Refresh failed — clear local auth state. Only hard-redirect if the user
-    // is on a page that requires authentication; on /login and /register a 401
-    // from SessionHydrator's /auth/me is expected and must not cause a reload loop.
+    // Refresh failed — clear local token state. The guard components will
+    // detect the auth error via useCurrentUser() and redirect to the right portal.
     setAuthToken(null);
-    if (typeof window !== "undefined") {
-      const p = window.location.pathname;
-      if (p !== "/login" && p !== "/register") {
-        window.location.href = `/login?redirect=${encodeURIComponent(p)}`;
-      }
-    }
     throw new Error("Session expired. Please log in again.");
   }
 
