@@ -3,14 +3,14 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { useLogin } from "@/lib/hooks/use-auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { setAuthToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-function LoginForm() {
+function AdminLoginForm() {
   const router   = useRouter();
   const params   = useSearchParams();
   const setUser  = useAuthStore((s) => s.setUser);
@@ -27,19 +27,18 @@ function LoginForm() {
 
     try {
       const res  = await login.mutateAsync({ email, password });
-      setAuthToken(res.access_token, res.user.role);
-      setUser(res.user);
-
       const role = res.user.role;
 
-      if (role === "ADMIN" || role === "LIBRARIAN") {
-        // Staff who arrived at the student portal get sent to the admin portal
-        router.push("/dashboard");
+      if (role === "STUDENT") {
+        setError("This portal is for staff only. Please use the Student Login instead.");
         return;
       }
 
-      // Students: honour redirect param, fall back to /search
-      router.push(params.get("redirect") ?? "/search");
+      setAuthToken(res.access_token, role);
+      setUser(res.user);
+
+      // Honour redirect param (set by middleware); fall back to dashboard
+      router.push(params.get("redirect") ?? "/dashboard");
     } catch (err) {
       setError((err as Error).message ?? "Login failed. Please try again.");
     }
@@ -51,13 +50,13 @@ function LoginForm() {
 
         {/* Wordmark */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center bg-primary-subtle rounded-2xl p-3 mb-4">
-            <BookOpen size={28} className="text-primary" strokeWidth={1.8} />
+          <div className="inline-flex items-center justify-center bg-accent-subtle rounded-2xl p-3 mb-4">
+            <ShieldCheck size={28} className="text-accent" strokeWidth={1.8} />
           </div>
           <h1 className="text-2xl font-semibold text-foreground tracking-tight">
-            Student Portal
+            Staff Portal
           </h1>
-          <p className="text-sm text-muted mt-1">Sign in to LibraFlow AI</p>
+          <p className="text-sm text-muted mt-1">Admin &amp; Librarian access — LibraFlow AI</p>
         </div>
 
         {/* Form */}
@@ -68,7 +67,7 @@ function LoginForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@lcu.edu.ng"
+            placeholder="staff@lcu.edu.ng"
             required
           />
 
@@ -98,34 +97,21 @@ function LoginForm() {
 
           <Button
             type="submit"
+            variant="accent"
             className="w-full"
             size="lg"
             loading={login.isPending}
           >
-            Sign in
+            Sign in to Staff Portal
           </Button>
         </form>
 
-        {params.get("registered") && (
-          <p className="text-center text-sm text-success bg-success-subtle px-3 py-2 rounded-xl">
-            Account created — please sign in.
-          </p>
-        )}
-
-        <div className="space-y-2 text-center">
-          <p className="text-sm text-muted">
-            No account?{" "}
-            <Link href="/register" className="text-primary font-medium hover:underline">
-              Register
-            </Link>
-          </p>
-          <p className="text-sm text-muted">
-            Staff member?{" "}
-            <Link href="/admin/login" className="text-accent font-medium hover:underline">
-              Use Staff Portal
-            </Link>
-          </p>
-        </div>
+        <p className="text-center text-sm text-muted">
+          Student?{" "}
+          <Link href="/login" className="text-primary font-medium hover:underline">
+            Use Student Login
+          </Link>
+        </p>
 
         <p className="text-center text-xs text-muted/60">
           Lead City University Library System
@@ -135,10 +121,10 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   return (
     <Suspense>
-      <LoginForm />
+      <AdminLoginForm />
     </Suspense>
   );
 }

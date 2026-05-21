@@ -1,26 +1,37 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/catalogue", "/circulation", "/members", "/reports", "/settings", "/borrowings", "/recommendations"];
-const LIBRARIAN_PREFIXES = ["/dashboard", "/catalogue", "/circulation", "/members", "/reports", "/settings"];
+// Routes that require ADMIN or LIBRARIAN role
+const ADMIN_PREFIXES = ["/dashboard", "/catalogue", "/circulation", "/members", "/reports", "/settings"];
+
+// Routes that require any authenticated user
+const STUDENT_PREFIXES = ["/search", "/borrowings", "/recommendations"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  if (!isProtected) return NextResponse.next();
+  const isAdminRoute   = ADMIN_PREFIXES.some((p) => pathname.startsWith(p));
+  const isStudentRoute = STUDENT_PREFIXES.some((p) => pathname.startsWith(p));
 
-  // lf_authed is a SameSite=Lax cookie set by the frontend JS on login —
-  // works cross-origin unlike the HTTP-only backend cookie.
+  if (!isAdminRoute && !isStudentRoute) return NextResponse.next();
+
   const hasToken = request.cookies.has("lf_authed");
-  if (!hasToken) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+  const role     = request.cookies.get("lf_role")?.value;
+
+  if (isAdminRoute) {
+    // No cookie, or cookie says STUDENT → staff portal login
+    if (!hasToken || role === "STUDENT") {
+      const dest = new URL("/admin/login", request.url);
+      dest.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(dest);
+    }
   }
 
-  const isLibrarianRoute = LIBRARIAN_PREFIXES.some((p) => pathname.startsWith(p));
-  if (isLibrarianRoute && request.cookies.get("lf_role")?.value === "STUDENT") {
-    return NextResponse.redirect(new URL("/search", request.url));
+  if (isStudentRoute) {
+    if (!hasToken) {
+      const dest = new URL("/login", request.url);
+      dest.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(dest);
+    }
   }
 
   return NextResponse.next();

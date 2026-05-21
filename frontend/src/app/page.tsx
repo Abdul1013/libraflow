@@ -17,19 +17,19 @@ export default function RootPage() {
         {/* Portal cards */}
         <div className="grid gap-4">
           <Link
-            href="/dashboard"
-            className="block bg-surface border border-border rounded-xl p-5 text-left hover:border-primary hover:shadow-sm transition-all duration-200 group"
+            href="/admin/login"
+            className="block bg-surface border border-border rounded-xl p-5 text-left hover:border-accent hover:shadow-sm transition-all duration-200 group"
           >
-            <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
-              Librarian Portal
+            <p className="font-semibold text-foreground group-hover:text-accent transition-colors">
+              Staff Portal
             </p>
             <p className="text-xs text-muted mt-0.5">
-              Manage catalogue, issue books, view analytics
+              Admins &amp; Librarians — manage catalogue, issue books, view analytics
             </p>
           </Link>
 
           <Link
-            href="/search"
+            href="/login"
             className="block bg-surface border border-border rounded-xl p-5 text-left hover:border-primary hover:shadow-sm transition-all duration-200 group"
           >
             <p className="font-semibold text-foreground group-hover:text-primary transition-colors">

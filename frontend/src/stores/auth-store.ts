@@ -1,28 +1,18 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import type { User } from "@/types";
 
 interface AuthState {
   user: User | null;
-  isAuthenticated: boolean;
-
   setUser: (user: User) => void;
   clearUser: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-
-      setUser: (user) => set({ user, isAuthenticated: true }),
-      clearUser: () => set({ user: null, isAuthenticated: false }),
-    }),
-    {
-      name: "libraflow-auth",
-      storage: createJSONStorage(() => sessionStorage), // cleared on tab close
-      partialize: (s) => ({ user: s.user, isAuthenticated: s.isAuthenticated }),
-    },
-  ),
-);
+// Pure in-memory store — no sessionStorage persistence.
+// TanStack Query (useCurrentUser) is the authoritative source; this store
+// exists only so nav components can read the user without issuing a query.
+// SessionHydrator keeps it in sync with the /auth/me query result.
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  clearUser: () => set({ user: null }),
+}));
