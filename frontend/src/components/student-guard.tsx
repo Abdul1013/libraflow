@@ -4,23 +4,18 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/lib/hooks/use-auth";
 
-export function AdminGuard({ children }: { children: React.ReactNode }) {
+export function StudentGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { data: user, isPending, isError } = useCurrentUser();
 
   useEffect(() => {
     if (isPending) return;
     if (isError || !user) {
-      router.replace("/admin/login");
-      return;
-    }
-    // Students who somehow land on an admin route get sent to their portal
-    if (user.role === "STUDENT") {
-      router.replace("/search");
+      router.replace("/login");
     }
   }, [isPending, isError, user, router]);
 
-  if (isPending || !user || user.role === "STUDENT") return null;
+  if (isPending || !user) return null;
 
   return <>{children}</>;
 }

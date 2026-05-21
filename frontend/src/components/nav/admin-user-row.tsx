@@ -13,7 +13,7 @@ export function AdminUserRow() {
   async function handleLogout() {
     await logout.mutateAsync();
     clearUser();
-    router.push("/login");
+    router.push("/admin/login");
   }
 
   const displayName = user?.full_name ?? "Librarian";
