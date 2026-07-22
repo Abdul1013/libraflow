@@ -24,7 +24,7 @@ LibraFlow AI replaces manual library processes with an intelligent, database-dri
 | Docker + Docker Compose | Latest |
 | Git | Any |
 
-> **Note for Supervisor (Miss Fatoki):** To run this project locally, install Docker Desktop from [docker.com](https://docker.com), then follow the steps below.
+
 
 ---
 
@@ -148,3 +148,8 @@ All interactive elements use **12px border-radius** (`rounded-xl`) following App
 | 2 | 8–14 | Auth (JWT), User Management, Circulation |
 | 3 | 15–21 | Intelligence: Fuzzy Search + KNN Recommendations |
 | 4 | 22–28 | Validation (H1-H3), Load Testing, Deployment |
+cd backend
+
+DATABASE_URL="postgresql://neondb_owner:npg_ae9Ln5vlcfIu@ep-late-sun-alr7wu45-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require" alembic upgrade head
+. it just loads and remains the same 
+DATABASE_URL="postgresql://neondb_owner:npg_ae9Ln5vlcfIu@ep-late-sun-alr7wu45-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require" .venv/bin/python scripts/seed.py
