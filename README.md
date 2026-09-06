@@ -1,8 +1,6 @@
 # LibraFlow AI
 
 **Intelligent Library Resource Management System**  
-Lead City University — Computer Science BSc Final Year Project  
-Developer: Igwe Chisimdi Evans | Supervisor: Miss Fatoki
 
 ---
 
@@ -130,15 +128,6 @@ All interactive elements use **12px border-radius** (`rounded-xl`) following App
 
 ---
 
-## Academic Hypotheses
-
-| ID | Claim | Success Criteria |
-|----|-------|-----------------|
-| H1 | Fuzzy search improves retrieval speed | ≥ 40% faster book location vs manual index |
-| H2 | Recommendation engine increases utilisation | ≥ 20% increase in diverse category borrowing |
-| H3 | Automated tracking reduces overdue rates | ≥ 15% reduction in late returns via auto-notifications |
-
----
 
 ## Sprint Timeline
 
@@ -150,6 +139,3 @@ All interactive elements use **12px border-radius** (`rounded-xl`) following App
 | 4 | 22–28 | Validation (H1-H3), Load Testing, Deployment |
 cd backend
 
-DATABASE_URL="postgresql://neondb_owner:npg_ae9Ln5vlcfIu@ep-late-sun-alr7wu45-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require" alembic upgrade head
-. it just loads and remains the same 
-DATABASE_URL="postgresql://neondb_owner:npg_ae9Ln5vlcfIu@ep-late-sun-alr7wu45-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require" .venv/bin/python scripts/seed.py
